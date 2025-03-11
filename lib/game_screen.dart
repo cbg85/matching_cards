@@ -1,62 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'game_provider.dart'; // Import the provider
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
-
-  @override
-  State<GameScreen> createState() => _GameScreenState();
-}
-
-class _GameScreenState extends State<GameScreen> {
-  static const int gridSize = 4; // Creates a 4x4 grid
-  List<bool> cardFlipped = List.generate(gridSize * gridSize, (index) => false);
-
-  void flipCard(int index) {
-    setState(() {
-      cardFlipped[index] = !cardFlipped[index];
-    });
-  }
-
+class GameScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Card Matching Game"),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: gridSize, // Creates a 4x4 grid
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: gridSize * gridSize,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () => flipCard(index),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: cardFlipped[index] ? Colors.white : Colors.blue,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.black),
+      appBar: AppBar(title: Text("Card Matching Game")),
+      body: Consumer<GameProvider>(
+        builder: (context, gameProvider, child) {
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4, // Adjust this for the number of cards per row
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: gameProvider.cards.length,
+            itemBuilder: (context, index) {
+              final card = gameProvider.cards[index];
+              return GestureDetector(
+                onTap: () => gameProvider.flipCard(index),
+                child: AnimatedSwitcher(
+                  duration: Duration(milliseconds: 500),  // Flip animation duration
+                  transitionBuilder: (child, animation) {
+                    // We want to flip the card, so we'll rotate it
+                    return RotationY(
+                      turns: animation,
+                      child: child,
+                    );
+                  },
+                  child: card.isFaceUp
+                      ? Image.asset(card.frontImage, key: ValueKey(card.frontImage))
+                      : Image.asset(card.backImage, key: ValueKey(card.backImage)),
                 ),
-                child: Center(
-                  child: cardFlipped[index]
-                      ? Text(
-                    "$index", // Replace this with actual card images or icons
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
-                  )
-                      : const Icon(Icons.question_mark, size: 32, color: Colors.white),
-                ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          );
+        },
       ),
+    );
+  }
+}
+
+class RotationY extends StatelessWidget {
+  final Widget child;
+  final Animation<double> turns;
+
+  RotationY({required this.turns, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: turns,
+      child: child,
+      builder: (context, child) {
+        final rotate = turns.value * 3.1416; // Rotating by 180 degrees
+        return Transform(
+          transform: Matrix4.rotationY(rotate),
+          alignment: Alignment.center,
+          child: child,
+        );
+      },
     );
   }
 }
