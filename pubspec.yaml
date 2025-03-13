@@ -1,31 +1,29 @@
-name: matching_cards
-description: A Flutter card-matching game
-
-publish_to: 'none' # Remove this line if you plan to publish your package
-
-version: 1.0.0+1
+name: card_matching_game
+description: A simple card matching game built with Flutter.
+publish_to: "none"
 
 environment:
-  sdk: ">=2.18.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.5
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/spade_back.png
-    - assets/club_back.png
-    - assets/diamond_back.png
-    - assets/heart_back.png
-    - assets/front_club.png
-    - assets/front_diamond.png
-    - assets/front_heart.png
-    - assets/front_spade.png
+    - assets/spade_back.jpg
+    - assets/club_back.jpg
+    - assets/diamond_back.jpg
+    - assets/heart_back.jpg
+    - assets/front_club.jpg
+    - assets/front_diamond.jpg
+    - assets/front_heart.jpg
+    - assets/front_spade.jpg

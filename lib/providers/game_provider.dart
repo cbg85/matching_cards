@@ -1,93 +1,62 @@
 import 'package:flutter/material.dart';
 
 class CardModel {
-  final int id;
-  final String image; // Represents the front image of the card
+  final String frontImage;
+  final String backImage;
   bool isFaceUp;
-  bool isMatched;
 
-  CardModel({
-    required this.id,
-    required this.image,
-    this.isFaceUp = false,
-    this.isMatched = false,
-  });
+  CardModel({required this.frontImage, required this.backImage, this.isFaceUp = false});
 }
 
 class GameProvider with ChangeNotifier {
-  List<CardModel> _cards = [];
-  CardModel? _firstFlippedCard;
-  bool _isChecking = false;
-
-  GameProvider() {
-    _initializeGame();
-  }
+  List<CardModel> _cards = [
+    CardModel(frontImage: 'assets/front_club.jpg', backImage: 'assets/club_back.jpg'),
+    CardModel(frontImage: 'assets/front_diamond.jpg', backImage: 'assets/diamond_back.jpg'),
+    CardModel(frontImage: 'assets/front_heart.jpg', backImage: 'assets/heart_back.jpg'),
+    CardModel(frontImage: 'assets/front_spade.jpg', backImage: 'assets/spade_back.jpg'),
+    CardModel(frontImage: 'assets/front_club.jpg', backImage: 'assets/club_back.jpg'),
+    CardModel(frontImage: 'assets/front_diamond.jpg', backImage: 'assets/diamond_back.jpg'),
+    CardModel(frontImage: 'assets/front_heart.jpg', backImage: 'assets/heart_back.jpg'),
+    CardModel(frontImage: 'assets/front_spade.jpg', backImage: 'assets/spade_back.jpg'),
+    // Add more cards to complete the 4x4 grid
+    // For example, you can duplicate the above 4 cards to get 16 cards total.
+  ];
 
   List<CardModel> get cards => _cards;
-  bool get isChecking => _isChecking;
 
-  void _initializeGame() {
-    List<String> images = [
-      'assets/card1.png',
-      'assets/card2.png',
-      'assets/card3.png',
-      'assets/card4.png',
-      'assets/card5.png',
-      'assets/card6.png',
-      'assets/card7.png',
-      'assets/card8.png',
-    ];
-
-    images = [...images, ...images]; // Duplicate images for pairs
-    images.shuffle(); // Shuffle the deck
-
-    _cards = List.generate(images.length, (index) {
-      return CardModel(id: index, image: images[index]);
-    });
-
-    notifyListeners();
-  }
+  int? _firstFlippedIndex;
+  bool _isProcessing = false;
 
   void flipCard(int index) {
-    if (_isChecking || _cards[index].isMatched || _cards[index].isFaceUp) {
-      return;
-    }
-
+    if (_isProcessing || _cards[index].isFaceUp) return; // Prevent flipping if already flipped or in processing state
     _cards[index].isFaceUp = true;
     notifyListeners();
 
-    if (_firstFlippedCard == null) {
-      _firstFlippedCard = _cards[index];
+    if (_firstFlippedIndex == null) {
+      // First card is flipped
+      _firstFlippedIndex = index;
     } else {
-      _isChecking = true;
-      notifyListeners();
-
-      Future.delayed(const Duration(seconds: 1), () {
-        _checkForMatch(index);
-      });
-    }
-  }
-
-  void _checkForMatch(int secondIndex) {
-    if (_firstFlippedCard != null) {
-      if (_firstFlippedCard!.image == _cards[secondIndex].image) {
-        _firstFlippedCard!.isMatched = true;
-        _cards[secondIndex].isMatched = true;
+      // Second card is flipped
+      _isProcessing = true; // Prevent further actions while checking for match
+      if (_cards[index].frontImage == _cards[_firstFlippedIndex!].frontImage) {
+        // It's a match, leave both face up
+        _firstFlippedIndex = null;
+        _isProcessing = false;
       } else {
-        _firstFlippedCard!.isFaceUp = false;
-        _cards[secondIndex].isFaceUp = false;
+        // Not a match, flip both cards back down after a short delay
+        Future.delayed(Duration(seconds: 1), () {
+          _cards[index].isFaceUp = false;
+          _cards[_firstFlippedIndex!].isFaceUp = false;
+          _firstFlippedIndex = null;
+          _isProcessing = false;
+          notifyListeners();
+        });
       }
     }
-
-    _firstFlippedCard = null;
-    _isChecking = false;
-    notifyListeners();
   }
 
-  void resetGame() {
-    _initializeGame();
-    _firstFlippedCard = null;
-    _isChecking = false;
+  void shuffleCards() {
+    _cards.shuffle();
     notifyListeners();
   }
 }
